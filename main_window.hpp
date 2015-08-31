@@ -1,11 +1,15 @@
 #ifndef MAIN_WINDOW_HPP
 #define MAIN_WINDOW_HPP
 
-#include <QMainWindow>
+#include <QCheckBox>
 #include <QLineEdit>
+#include <QMainWindow>
 #include <QPushButton>
+#include <QProgressBar>
 
-class MainWindow : public QMainWindow
+#include "edit_files_error.hpp"
+
+class MainWindow final : public QMainWindow
 {
   Q_OBJECT
 
@@ -25,6 +29,10 @@ class MainWindow : public QMainWindow
     QLineEdit* _start_with;
     QLineEdit* _end_with;
     QPushButton* _start_button;
+    QCheckBox* _recursive;
+    QProgressBar* _progress_bar;
+
+    EditFilesError* _files_error {nullptr};
 };
 
 #endif // MAIN_WINDOW_HPP

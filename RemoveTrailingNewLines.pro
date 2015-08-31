@@ -14,11 +14,13 @@ TEMPLATE = app
 
 SOURCES += main.cpp\
         main_window.cpp \
-    utils.cpp
+    utils.cpp \
+    edit_files_error.cpp
 
 HEADERS  += main_window.hpp \
-    utils.hpp
+    utils.hpp \
+    edit_files_error.hpp
 
 CONFIG += c++11
 
-LIBS += -lboost_regex -lboost_filesystem -lboost_system
+LIBS += -lboost_filesystem -lboost_system

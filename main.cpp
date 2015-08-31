@@ -1,15 +1,7 @@
 #include "main_window.hpp"
 
 #include <QApplication>
-
-std::string getFolder(const std::string& path)
-{
-  size_t offset = path.find_last_of("/");
-  if(offset == std::string::npos)
-    return path;
-
-  return path.substr(0, offset);
-}
+#include <QDir>
 
 int main(int argc, char *argv[])
 {
@@ -17,7 +9,7 @@ int main(int argc, char *argv[])
   app.setApplicationName("Remove Trailing Lines");
 
   MainWindow window;
-  QIcon icon((getFolder(argv[0]) + "/resources/icon.png").c_str());
+  QIcon icon(QDir(argv[0]).dirName() + QString("/resources/icon.png"));
   window.setWindowIcon(icon);
   window.show();
 

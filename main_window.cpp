@@ -1,9 +1,9 @@
 #include "main_window.hpp"
 
-#include <QVBoxLayout>
-#include <QHBoxLayout>
 #include <QFileDialog>
+#include <QHBoxLayout>
 #include <QMessageBox>
+#include <QVBoxLayout>
 
 #include <boost/algorithm/string.hpp>
 
@@ -28,13 +28,21 @@ MainWindow::MainWindow(QWidget *parent)
   folder_layout->addWidget(_select_folder);
   folder_layout->addWidget(_selected_folder);
 
+  _recursive = new QCheckBox("Recursive");
+  _recursive->setChecked(true);
+
   _start_button = new QPushButton("RUN");
   _start_button->setEnabled(false);
+
+  _progress_bar = new QProgressBar;
+  _progress_bar->setMinimum(0);
 
   main_layout->addLayout(folder_layout);
   main_layout->addWidget(_start_with);
   main_layout->addWidget(_end_with);
+  main_layout->addWidget(_recursive);
   main_layout->addWidget(_start_button);
+  main_layout->addWidget(_progress_bar);
 
   setCentralWidget(main_widget);
 
@@ -57,35 +65,39 @@ void MainWindow::selectFolder()
 void MainWindow::run()
 {
   // Find files
-  const auto& file_paths = utils::listFiles( _selected_folder->text().toStdString(), _start_with->text().toStdString(), _end_with->text().toStdString() );
+  QStringList file_paths;
+  const QString name_filter {_start_with->text() + "*" + _end_with->text()};
+  utils::listFiles( _selected_folder->text(), name_filter, _recursive->isChecked(), file_paths );
   if(file_paths.empty())
   {
     QMessageBox::warning(this, "Empty result", "No files found");
     return;
   }
 
+  // Reset progress bar
+  _progress_bar->setValue(0);
+  _progress_bar->setMaximum(file_paths.size());
+
   // Update files and save possible errors
-  std::vector<std::string> errors;
-  for( const auto& file_path : file_paths )
+  QStringList errors;
+  for( const QString& file_path : file_paths )
   {
-    if(!utils::removeTrailingLines(file_path))
-      errors.push_back(file_path);
+    if(!utils::removeTrailingLines(file_path.toStdString()))
+      errors.append(file_path);
+
+    _progress_bar->setValue( _progress_bar->value() + 1 );
   }
 
   // Some errors?
   if( !errors.empty() )
   {
-    // Create error message
-    QString error_msg {"The following file(s) couldn't be edited (may be you don't have the correct permissions):\n"};
-    for(const auto& error : errors)
-      error_msg += (error + "\n").c_str();
-
-    // Show error message
-    QMessageBox::warning(this, "Errors", error_msg);
+    delete _files_error;
+    _files_error = new EditFilesError(this, errors);
+    _files_error->show();
   }
 
   // Output results to user
   const size_t nbr_files_updated = file_paths.size() - errors.size();
   if( nbr_files_updated > 0 )
-    QMessageBox::information(this, "Information", (std::to_string(nbr_files_updated) + " file(s) have been updated").c_str());
+    QMessageBox::information(this, "Information", (std::to_string(nbr_files_updated) + " file(s) have been found and updated").c_str());
 }

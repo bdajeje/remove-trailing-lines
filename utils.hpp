@@ -4,14 +4,18 @@
 #include <string>
 #include <vector>
 
+#include <QString>
+
 namespace utils {
 
 /*! List files recursively under direcotry
- *  \param dir_path - directory path to scan
- *  \param regexes  - filter files by regexes. If not given, do not filter at all.
- *  \returns a list of filepath
+ *  \param dir_path   - directory path to scan
+ *  \param start_with - filter file by start with
+ *  \param end_with   - filter file by end with
+ *  \param recursive  - enter folder?
+ *  \param results    - (out) found filepaths
  */
-std::vector<std::string> listFiles(std::string dir_path, const std::string& start_with, const std::string& end_with);
+void listFiles(const QString& dir_path, const QString& name_filter, bool recursive, QStringList& results);
 
 /*! Remove trailing lines from file
  *  \param file_path - file path to update

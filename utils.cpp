@@ -1,38 +1,27 @@
 #include "utils.hpp"
 
-#include <dirent.h>
 #include <fstream>
 
 #include <boost/algorithm/string.hpp>
 
+#include <QDir>
+
 namespace utils {
 
-std::vector<std::string> listFiles(std::string dir_path, const std::string& start_with, const std::string& end_with)
+void listFiles(const QString& dir_path, const QString& name_filter, bool recursive, QStringList& results)
 {
-  std::vector<std::string> results;
+  QDir dir {dir_path};
 
-  DIR* dir;
-  if((dir = opendir(dir_path.c_str())) != nullptr)
+  // Files
+  for( const QString& filename : dir.entryList({name_filter}, QDir::NoDotAndDotDot | QDir::Files ) )
+    results.append( dir_path + "/" + filename );
+
+  // Directories
+  if( recursive )
   {
-    if(dir_path.back() != '/')
-      dir_path += '/';
-
-    struct dirent* ent;
-    while((ent = readdir(dir)) != nullptr)
-    {
-      std::string filename {ent->d_name};
-
-      if(filename == "." || filename == "..")
-        continue;
-
-      if( boost::algorithm::starts_with(filename, start_with) &&
-          boost::algorithm::ends_with(filename, end_with))
-        results.push_back( dir_path + filename );
-    }
-    closedir(dir);
+    for( const QString& dirname : dir.entryList(QDir::NoDotAndDotDot | QDir::Dirs ) )
+      listFiles( dir_path + "/" + dirname, name_filter, recursive, results );
   }
-
-  return results;
 }
 
 bool removeTrailingLines(const std::string& file_path)
@@ -50,7 +39,7 @@ bool removeTrailingLines(const std::string& file_path)
   size_t nbr_empty_lines {0};
   for( size_t i = lines.size(); i > 0; --i )
   {
-    if(lines[i - 1].length() <= 1)
+    if(lines[i - 1].length() < 1)
       nbr_empty_lines++;
     else
       break;
